@@ -12,14 +12,6 @@ interface Category {
     color: string;
 }
 
-const DEFAULT_CATEGORIES = [
-    { name: 'Food', icon: 'food', color: '#FF5722' },
-    { name: 'Transport', icon: 'bus', color: '#2196F3' },
-    { name: 'Shopping', icon: 'cart', color: '#E91E63' },
-    { name: 'Rent', icon: 'home', color: '#9C27B0' },
-    { name: 'Bills', icon: 'file-document', color: '#607D8B' },
-    { name: 'Salary', icon: 'cash', color: '#4CAF50' },
-];
 
 export default function CategoryScreen() {
     const { user } = useAuth();
@@ -36,31 +28,10 @@ export default function CategoryScreen() {
         const q = query(collection(db, 'categories'), where('userId', '==', user.uid));
         const unsubscribe = onSnapshot(q, async (snapshot) => {
             const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
-
-            if (list.length === 0 && !snapshot.metadata.fromCache) {
-                // Seed default categories if none exist and not strictly from cache
-                // Check once to avoid infinite loops if seed fails or is slow
-                // ideally user triggers this or we check differently, but for now:
-                // We'll leave it empty to prompt user or add a "Seed Defaults" button?
-                // Let's add a quick check: if list is empty, we set local state to suggest seeding or just auto-seed carefully.
-                // Auto-seeding safely:
-                // This logic might be dangerous in onSnapshot. Let's just provide a button or do it once.
-            }
             setCategories(list);
         });
 
         return () => unsubscribe();
-    }, [user]);
-
-    // Separate useEffect for seeding to avoid Loop in onSnapshot
-    useEffect(() => {
-        const checkAndSeed = async () => {
-            if (!user) return;
-            // logic to check count or just let user add manually.
-            // For better UX during dev, let's skip auto-seeding to prevent dupes 
-            // and let user add or I'll provide a helper button in UI if list is empty.
-        };
-        checkAndSeed();
     }, [user]);
 
     const showDialog = (category?: Category) => {
@@ -126,32 +97,11 @@ export default function CategoryScreen() {
         ]);
     };
 
-    const seedDefaults = async () => {
-        if (!user) return;
-        setLoading(true);
-        try {
-            const batch = writeBatch(db);
-            DEFAULT_CATEGORIES.forEach(cat => {
-                const docRef = doc(collection(db, 'categories'));
-                batch.set(docRef, { ...cat, userId: user.uid });
-            });
-            await batch.commit();
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    
 
     return (
         <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-            {categories.length === 0 && (
-                <View style={styles.emptyState}>
-                    <Text style={{ marginBottom: 10, color: theme.colors.secondary }}>No categories found.</Text>
-                    <Button mode="outlined" onPress={seedDefaults} loading={loading}>Add Default Categories</Button>
-                </View>
-            )}
-
+            
             <FlatList
                 data={categories}
                 keyExtractor={(item) => item.id}

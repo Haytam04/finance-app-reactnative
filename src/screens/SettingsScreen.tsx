@@ -34,11 +34,6 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
                     onPress={() => navigation.navigate('Budgets')}
                 />
                 <Divider />
-                <List.Item
-                    title="Dark Mode"
-                    left={() => <List.Icon icon="theme-light-dark" />}
-                    right={() => <Switch value={false} onValueChange={() => { }} />}
-                />
             </List.Section>
 
             <List.Section>
