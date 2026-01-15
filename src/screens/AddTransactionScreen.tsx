@@ -9,7 +9,6 @@ export default function AddTransactionScreen({ navigation, route }: { navigation
     const theme = useTheme();
     const { user } = useAuth();
 
-    // Check if we are editing
     const editingTransaction = route.params?.transaction;
 
     const [type, setType] = useState(editingTransaction?.type || 'expense');
@@ -19,14 +18,12 @@ export default function AddTransactionScreen({ navigation, route }: { navigation
 
     const [loading, setLoading] = useState(false);
 
-    // Category Selection
     const [categories, setCategories] = useState<any[]>([]);
     const [showCategoryPicker, setShowCategoryPicker] = useState(false);
 
     useEffect(() => {
         if (!user) return;
-
-        // Fetch Categories
+        
         const q = query(collection(db, 'categories'), where('userId', '==', user.uid));
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -55,9 +52,6 @@ export default function AddTransactionScreen({ navigation, route }: { navigation
                 title,
                 category,
                 userId: user?.uid,
-                // Only update date if new? Or keep original date?
-                // Usually we keep original date on edit unless user explicitly changes it.
-                // For new, use serverTimestamp.
                 date: editingTransaction ? editingTransaction.date : serverTimestamp(),
             };
 
@@ -113,10 +107,10 @@ export default function AddTransactionScreen({ navigation, route }: { navigation
                     <TextInput
                         label="Category"
                         value={category}
-                        editable={false} // Make it read-only, tap triggers picker
+                        editable={false}
                         style={styles.input}
                         right={<TextInput.Icon icon="chevron-down" />}
-                        pointerEvents="none" // Pass press to TouchableOpacity
+                        pointerEvents="none"
                     />
                 </TouchableOpacity>
 
